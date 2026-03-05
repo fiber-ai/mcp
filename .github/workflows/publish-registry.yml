@@ -1,0 +1,37 @@
+name: Publish to MCP Registry
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - server.json
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
+      - name: Authenticate with GitHub OIDC
+        run: mcp-publisher login github
+
+      - name: Publish to MCP Registry
+        run: mcp-publisher publish
+
+      - name: Verify publication
+        run: |
+          sleep 5
+          curl -s "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.fiber-ai/mcp" | head -c 500
+          echo ""
+          echo "✅ Published to MCP Registry"
