@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.fiber-ai/mcp",
+  "name": "ai.fiber/mcp",
   "title": "Fiber AI",
-  "description": "Search companies, enrich contacts, reveal work emails and phone numbers — directly from your AI agent. Fiber AI provides two MCP servers: V2 with ~10 curated high-priority tools, and Core with 4 meta tools that can discover and call any of 100+ API endpoints.",
+  "description": "Search companies, enrich contacts, and reveal emails and phones from your AI agent.",
   "version": "1.0.0",
   "repository": {
     "url": "https://github.com/fiber-ai/mcp",
