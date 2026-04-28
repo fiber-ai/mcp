@@ -4,6 +4,7 @@
   "title": "Fiber AI",
   "description": "Search companies, enrich contacts, and reveal emails and phones from your AI agent.",
   "version": "1.0.0",
+  "websiteUrl": "https://docs.fiber.ai/article/using-mcp-in-llms",
   "repository": {
     "url": "https://github.com/fiber-ai/mcp",
     "source": "github"
@@ -11,11 +12,33 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://mcp.fiber.ai/mcp/v2/"
+      "url": "https://mcp.fiber.ai/mcp/v2",
+      "headers": [
+        {
+          "name": "x-api-key",
+          "description": "Fiber AI API key. Get one at https://fiber.ai/app/api. The agent can also pass it in the request body as `apiKey` if you prefer to provide it via chat instead of configuring a header.",
+          "isRequired": true,
+          "isSecret": true,
+          "placeholder": "sk_live_..."
+        }
+      ]
     },
     {
       "type": "streamable-http",
-      "url": "https://mcp.fiber.ai/mcp"
+      "url": "https://mcp.fiber.ai/mcp/v3"
+    },
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.fiber.ai/mcp",
+      "headers": [
+        {
+          "name": "x-api-key",
+          "description": "Fiber AI API key. Get one at https://fiber.ai/app/api.",
+          "isRequired": true,
+          "isSecret": true,
+          "placeholder": "sk_live_..."
+        }
+      ]
     }
   ]
 }
