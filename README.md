@@ -32,20 +32,35 @@ Fiber AI offers three remote MCP servers:
 
 ## Want more than MCP? Use the Fiber AI plugin
 
-The [Fiber AI plugin](https://github.com/fiber-ai/fiber-ai-plugin) installs all three MCP servers **plus** 16 skills (search, enrich, audiences, recruiting and SDR playbooks) and 7 persona subagents (`ai-sdr`, `ai-recruiter`, `gtm-strategist`, and more) in one step. It supports Claude Code, Cursor, Gemini CLI, OpenCode, Codex, VS Code, and more. For example, in Claude Code:
-
-```bash
-/plugin marketplace add fiber-ai/fiber-ai-plugin
-/plugin install fiber@fiber-tools
-```
-
-See the [plugin README](https://github.com/fiber-ai/fiber-ai-plugin#install) for every harness. Use the setup below if you only want the MCP servers.
+The [Fiber AI plugin](https://github.com/fiber-ai/fiber-ai-plugin) bundles these MCP servers with 16 skills (search, enrich, audiences, recruiting and SDR playbooks) and 7 persona subagents (`ai-sdr`, `ai-recruiter`, `gtm-strategist`, and more) for Claude Code, Cursor, Gemini CLI, OpenCode, Codex, and VS Code. See its [install guide](https://github.com/fiber-ai/fiber-ai-plugin#install). This repo covers the MCP servers only.
 
 ---
 
 ## Setup
 
 Get an API key at [fiber.ai/app/api](https://fiber.ai/app/api) for V2 and Core. The examples read it from a `FIBER_API_KEY` environment variable. V3 needs no key: your client opens a browser for SSO login on first connect.
+
+Connect directly with the config for your client below, or through [Smithery](#smithery).
+
+### Smithery
+
+Fiber AI is listed on Smithery as [`fiberai/fiber-mcp`](https://smithery.ai/servers/fiberai/fiber-mcp) (V2) and [`fiberai/fiber-core`](https://smithery.ai/servers/fiberai/fiber-core) (Core). Install into your client with one command:
+
+```bash
+npx -y @smithery/cli@latest mcp add fiberai/fiber-mcp --client cursor
+```
+
+Replace `cursor` with your client: `claude-code`, `claude`, `vscode`, `codex`, `gemini-cli`, `windsurf`, `opencode`, `cline`, `goose`, and more (`npx -y @smithery/cli@latest mcp add --help` lists them all). Use `fiberai/fiber-core` for Core. On first connect your client opens Smithery in the browser to sign in and set your Fiber API key.
+
+To use it as a Smithery connection instead (for agents that call tools through the Smithery CLI):
+
+```bash
+npx -y @smithery/cli@latest mcp add fiberai/fiber-mcp --id fiber-ai-v2 \
+  --headers "{\"x-api-key\": \"$FIBER_API_KEY\"}"
+npx -y @smithery/cli@latest tool list fiber-ai-v2
+```
+
+---
 
 ### Cursor
 
@@ -145,6 +160,48 @@ codex mcp login fiber-ai-v3
 ```
 
 The Codex IDE extension and the Codex app read the same `~/.codex/config.toml`.
+
+---
+
+### Gemini CLI
+
+```bash
+gemini mcp add -t http -H "x-api-key: $FIBER_API_KEY" fiber-ai-v2 https://mcp.fiber.ai/mcp/v2
+gemini mcp add -t http fiber-ai-v3 https://mcp.fiber.ai/mcp/v3
+gemini mcp add -t http -H "x-api-key: $FIBER_API_KEY" fiber-ai-core https://mcp.fiber.ai/mcp
+```
+
+Add `-s user` to install for every project instead of the current one. Run `gemini mcp list` to verify, and `/mcp auth fiber-ai-v3` inside a session to sign in to V3.
+
+---
+
+### OpenCode
+
+Add to `opencode.json` in your project (or `~/.config/opencode/opencode.json`):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "fiber-ai-v2": {
+      "type": "remote",
+      "url": "https://mcp.fiber.ai/mcp/v2",
+      "headers": { "x-api-key": "{env:FIBER_API_KEY}" }
+    },
+    "fiber-ai-v3": {
+      "type": "remote",
+      "url": "https://mcp.fiber.ai/mcp/v3"
+    },
+    "fiber-ai-core": {
+      "type": "remote",
+      "url": "https://mcp.fiber.ai/mcp",
+      "headers": { "x-api-key": "{env:FIBER_API_KEY}" }
+    }
+  }
+}
+```
+
+Run `opencode mcp list` to verify, and `opencode mcp auth fiber-ai-v3` to sign in to V3.
 
 ---
 
