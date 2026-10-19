@@ -24,181 +24,184 @@ Fiber AI offers three remote MCP servers:
 
 | Server | URL | Auth | Best For |
 |--------|-----|------|----------|
-| **V2** | `https://mcp.fiber.ai/mcp/v2` | API key | Auto-generated direct tools for the top ~10 priority operations (`api_companySearch`, `api_peopleSearch`, etc.) |
+| **V2** | `https://mcp.fiber.ai/mcp/v2` | API key | Auto-generated direct tools for the top ~10 priority operations (`companySearch_tool`, `peopleSearch_tool`, etc.) |
 | **V3** | `https://mcp.fiber.ai/mcp/v3` | OAuth (SSO) | Direct tools for every public operation with compact descriptions; the model can call or expand any tool on demand |
 | **Core** | `https://mcp.fiber.ai/mcp` | API key | 5 meta-tools that discover and call any of 100+ API endpoints (`search_endpoints`, `list_tag_packs`, `list_all_endpoints`, `get_endpoint_details_full`, `call_operation`) |
 
 > **Which one should I use?** **V2** is the fastest path for the most common flows with an API key. **V3** is the most ergonomic for broad agent coverage — it exposes every public operation as a direct tool with compact descriptions, authenticated via browser-based SSO login instead of a pasted key. **Core** keeps the tool count tiny (5) and lets the agent discover endpoints at runtime; it uses the same API-key auth as V2. You can register more than one; the server names (`fiber-ai-v2`, `fiber-ai-v3`, `fiber-ai-core`) stay distinct.
 
+## Want more than MCP? Use the Fiber AI plugin
+
+The [Fiber AI plugin](https://github.com/fiber-ai/fiber-ai-plugin) installs all three MCP servers **plus** 16 skills (search, enrich, audiences, recruiting and SDR playbooks) and 7 persona subagents (`ai-sdr`, `ai-recruiter`, `gtm-strategist`, and more) in one step. It supports Claude Code, Cursor, Gemini CLI, OpenCode, Codex, VS Code, and more. For example, in Claude Code:
+
+```bash
+/plugin marketplace add fiber-ai/fiber-ai-plugin
+/plugin install fiber@fiber-tools
+```
+
+See the [plugin README](https://github.com/fiber-ai/fiber-ai-plugin#install) for every harness. Use the setup below if you only want the MCP servers.
+
 ---
 
 ## Setup
 
-### Smithery
-
-Install via [Smithery](https://smithery.ai) with a single command:
-
-```bash
-npx -y @smithery/cli install @fiber-ai/mcp --client cursor
-```
-
-Replace `cursor` with your client: `claude`, `windsurf`, `vscode`, `zed`, etc.
-
-Or browse and install from the Smithery web UI at [smithery.ai/server/@fiber-ai/mcp](https://smithery.ai/server/@fiber-ai/mcp).
-
----
+Get an API key at [fiber.ai/app/api](https://fiber.ai/app/api) for V2 and Core. The examples read it from a `FIBER_API_KEY` environment variable. V3 needs no key: your client opens a browser for SSO login on first connect.
 
 ### Cursor
 
-Click the link below to install automatically — paste it into your browser address bar and press Enter:
+Paste a link into your browser address bar and press Enter (Cursor must be installed):
 
-**Install V2:**
-
-```
-cursor://anysphere.cursor-deeplink/mcp/install?name=FiberAI-V2&config=eyJ1cmwiOiJodHRwczovL21jcC5maWJlci5haS9tY3AvdjIifQ==
-```
-
-**Install Core:**
+**V2:**
 
 ```
-cursor://anysphere.cursor-deeplink/mcp/install?name=FiberAI&config=eyJ1cmwiOiJodHRwczovL21jcC5maWJlci5haS9tY3AifQ==
+cursor://anysphere.cursor-deeplink/mcp/install?name=fiber-ai-v2&config=eyJ0eXBlIjoiaHR0cCIsInVybCI6Imh0dHBzOi8vbWNwLmZpYmVyLmFpL21jcC92MiJ9
 ```
 
-Or manually: open Cursor Settings → Features → MCP → "+ Add New MCP Server" → Type: `HTTP` → URL: `https://mcp.fiber.ai/mcp/v2`
+**V3 (OAuth):**
 
----
-
-### Claude Code
-
-The simplest path passes your key as a header so the agent never sees it in chat:
-
-```bash
-claude mcp add --transport http fiber-ai-v2 https://mcp.fiber.ai/mcp/v2 \
-  --header "x-api-key: $FIBER_API_KEY"
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=fiber-ai-v3&config=eyJ0eXBlIjoiaHR0cCIsInVybCI6Imh0dHBzOi8vbWNwLmZpYmVyLmFpL21jcC92MyJ9
 ```
 
-To also add the Core server:
+**Core:**
 
-```bash
-claude mcp add --transport http fiber-ai https://mcp.fiber.ai/mcp \
-  --header "x-api-key: $FIBER_API_KEY"
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=fiber-ai-core&config=eyJ0eXBlIjoiaHR0cCIsInVybCI6Imh0dHBzOi8vbWNwLmZpYmVyLmFpL21jcCJ9
 ```
 
-Or, if you prefer to give the key via chat, drop the `--header` flag and the agent will pass `apiKey` in the request body when you tell it your key.
-
-Run `/mcp` inside a Claude Code session to verify the connection.
-
----
-
-### Claude Desktop
-
-From Claude settings → Connectors, add a new MCP server with the URL `https://mcp.fiber.ai/mcp/v2`.
-
-Or edit your `claude_desktop_config.json`:
+The links don't include your key; give it to the agent in chat, or add it to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ```json
 {
   "mcpServers": {
     "fiber-ai-v2": {
-      "url": "https://mcp.fiber.ai/mcp/v2",
-      "transport": { "type": "http" },
-      "headers": { "x-api-key": "sk_live_..." }
-    },
-    "fiber-ai": {
-      "url": "https://mcp.fiber.ai/mcp",
-      "transport": { "type": "http" },
-      "headers": { "x-api-key": "sk_live_..." }
-    }
-  }
-}
-```
-
-The `headers` field is optional - if you omit it, the agent will pass `apiKey` in the request body when you give it your key in chat.
-
----
-
-### Codex
-
-```bash
-codex mcp add fiber-ai --url https://mcp.fiber.ai/mcp/v2
-```
-
-Or add to `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.fiber-ai]
-url = "https://mcp.fiber.ai/mcp/v2"
-transport = "http"
-
-[mcp_servers.fiber-ai.headers]
-x-api-key = "sk_live_..."
-```
-
-The `[mcp_servers.fiber-ai.headers]` block is optional - drop it and give the key in chat instead.
-
----
-
-### Visual Studio Code
-
-Press `Ctrl/Cmd + P`, search for **MCP: Add Server**, select **Command (stdio)**, and enter:
-
-```
-npx mcp-remote https://mcp.fiber.ai/mcp/v2
-```
-
-Name it `FiberAI` and activate it via **MCP: List Servers**.
-
-Or add to `.vscode/mcp.json`. If your VS Code version supports HTTP MCP natively, prefer the header-based shape:
-
-```json
-{
-  "mcpServers": {
-    "fiber-ai": {
       "type": "http",
       "url": "https://mcp.fiber.ai/mcp/v2",
+      "headers": { "x-api-key": "${env:FIBER_API_KEY}" }
+    },
+    "fiber-ai-v3": {
+      "type": "http",
+      "url": "https://mcp.fiber.ai/mcp/v3"
+    },
+    "fiber-ai-core": {
+      "type": "http",
+      "url": "https://mcp.fiber.ai/mcp",
       "headers": { "x-api-key": "${env:FIBER_API_KEY}" }
     }
   }
 }
 ```
 
-Older VS Code releases need the stdio wrapper (`mcp-remote` forwards your `FIBER_API_KEY` env var as a header):
+---
+
+### Claude Code
+
+```bash
+claude mcp add --transport http fiber-ai-v2 https://mcp.fiber.ai/mcp/v2 \
+  --header "x-api-key: $FIBER_API_KEY"
+
+claude mcp add --transport http fiber-ai-v3 https://mcp.fiber.ai/mcp/v3
+
+claude mcp add --transport http fiber-ai-core https://mcp.fiber.ai/mcp \
+  --header "x-api-key: $FIBER_API_KEY"
+```
+
+Run `/mcp` inside a Claude Code session to verify the connection and complete the V3 login.
+
+---
+
+### Claude Desktop and claude.ai
+
+Claude Desktop and claude.ai add remote servers as **custom connectors**, which authenticate with OAuth and can't send an API-key header. Use V3:
+
+1. Open **Settings → Connectors → Add custom connector**.
+2. Enter `https://mcp.fiber.ai/mcp/v3` and sign in when prompted.
+
+You can also add `https://mcp.fiber.ai/mcp/v2` as a connector and give the agent your key in chat (see [Authentication](#authentication)).
+
+---
+
+### Codex
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.fiber-ai-v2]
+url = "https://mcp.fiber.ai/mcp/v2"
+env_http_headers = { "x-api-key" = "FIBER_API_KEY" }
+
+[mcp_servers.fiber-ai-v3]
+url = "https://mcp.fiber.ai/mcp/v3"
+
+[mcp_servers.fiber-ai-core]
+url = "https://mcp.fiber.ai/mcp"
+env_http_headers = { "x-api-key" = "FIBER_API_KEY" }
+```
+
+`env_http_headers` sends the value of the `FIBER_API_KEY` environment variable as the `x-api-key` header. Then sign in to V3:
+
+```bash
+codex mcp login fiber-ai-v3
+```
+
+The Codex IDE extension and the Codex app read the same `~/.codex/config.toml`.
+
+---
+
+### Visual Studio Code
+
+Add to `.vscode/mcp.json` in your workspace (VS Code reads servers from the top-level `servers` key):
 
 ```json
 {
-  "mcpServers": {
-    "fiber-ai": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.fiber.ai/mcp/v2",
-        "--header",
-        "x-api-key:${FIBER_API_KEY}"
-      ]
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "fiber-api-key",
+      "description": "Fiber AI API key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "fiber-ai-v2": {
+      "type": "http",
+      "url": "https://mcp.fiber.ai/mcp/v2",
+      "headers": { "x-api-key": "${input:fiber-api-key}" }
+    },
+    "fiber-ai-v3": {
+      "type": "http",
+      "url": "https://mcp.fiber.ai/mcp/v3"
+    },
+    "fiber-ai-core": {
+      "type": "http",
+      "url": "https://mcp.fiber.ai/mcp",
+      "headers": { "x-api-key": "${input:fiber-api-key}" }
     }
   }
 }
 ```
 
+VS Code prompts for the key once and stores it securely. Start the servers from **MCP: List Servers**.
+
 ---
 
-### Windsurf
+### Windsurf (Devin Desktop)
 
-Press `Ctrl/Cmd + ,` → Cascade → MCP servers → Add custom server:
+Open the Cascade panel's `...` menu → **Open MCP config file**, and add:
 
 ```json
 {
   "mcpServers": {
-    "fiber-ai": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.fiber.ai/mcp/v2",
-        "--header",
-        "x-api-key:${FIBER_API_KEY}"
-      ]
+    "fiber-ai-v2": {
+      "serverUrl": "https://mcp.fiber.ai/mcp/v2",
+      "headers": { "x-api-key": "${env:FIBER_API_KEY}" }
+    },
+    "fiber-ai-v3": {
+      "serverUrl": "https://mcp.fiber.ai/mcp/v3"
+    },
+    "fiber-ai-core": {
+      "serverUrl": "https://mcp.fiber.ai/mcp",
+      "headers": { "x-api-key": "${env:FIBER_API_KEY}" }
     }
   }
 }
@@ -208,26 +211,27 @@ Press `Ctrl/Cmd + ,` → Cascade → MCP servers → Add custom server:
 
 ### Zed
 
-Press `Cmd + ,` and add:
+Open **Settings → AI → MCP Servers → Add Server → Add Remote Server**, or add to your settings file:
 
 ```json
 {
   "context_servers": {
-    "fiber-ai": {
-      "source": "custom",
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.fiber.ai/mcp/v2",
-        "--header",
-        "x-api-key:${FIBER_API_KEY}"
-      ],
-      "env": { "FIBER_API_KEY": "sk_live_..." }
+    "fiber-ai-v2": {
+      "url": "https://mcp.fiber.ai/mcp/v2",
+      "headers": { "Authorization": "Bearer sk_live_..." }
+    },
+    "fiber-ai-v3": {
+      "url": "https://mcp.fiber.ai/mcp/v3"
+    },
+    "fiber-ai-core": {
+      "url": "https://mcp.fiber.ai/mcp",
+      "headers": { "Authorization": "Bearer sk_live_..." }
     }
   }
 }
 ```
+
+Zed starts an OAuth login for any remote server without an `Authorization` header, so use the Bearer form for V2 and Core.
 
 ---
 
@@ -235,27 +239,35 @@ Press `Cmd + ,` and add:
 
 Most MCP-compatible tools can be configured with:
 
-- **URL**: `https://mcp.fiber.ai/mcp/v2`
+- **URL**: `https://mcp.fiber.ai/mcp/v2` (or `/mcp/v3`, `/mcp`)
 - **Transport**: HTTP (Streamable HTTP)
-- **Auth**: header `x-api-key: <your key>` (or `Authorization: Bearer <your key>`)
+- **Auth**: header `x-api-key: <your key>` (or `Authorization: Bearer <your key>`) for V2 and Core; OAuth for V3
 - For stdio-only clients: `npx -y mcp-remote https://mcp.fiber.ai/mcp/v2 --header x-api-key:$FIBER_API_KEY`
 
 ---
 
 ## Available Tools
 
-### V2 Server (`/mcp/v2/`)
+### V2 Server (`/mcp/v2`)
 
 Direct API tools — each Fiber AI endpoint is exposed as an individual tool:
 
 | Tool | Description |
 |------|-------------|
-| `api_companySearch` | Search for companies by industry, location, size, funding, etc. |
-| `api_peopleSearch` | Search for people by title, seniority, department, etc. |
-| `api_individualRevealSync` | Reveal work email and phone for a LinkedIn profile |
-| `api_companyLiveFetch` | Get live LinkedIn data for a company |
-| `api_personLiveFetch` | Get live LinkedIn data for a person |
-| `api_getOrgCredits` | Check your credit balance |
+| `companySearch_tool` | Search for companies by industry, location, size, funding, etc. |
+| `peopleSearch_tool` | Search for people by title, seniority, department, etc. |
+| `profileLiveEnrich_tool` | Live-fetch a LinkedIn profile |
+| `companyLiveEnrich_tool` | Live-fetch a LinkedIn company |
+| `getOrgCredits_tool` | Check your credit balance |
+| `getRateLimits_tool` | Check your organization's rate limits |
+| `getAutoTopupSettings_tool` | Get auto top-up settings |
+| `getAllApiKeys_tool` | List your API keys |
+| `cardsAttach_tool` | Attach a card to a trial account |
+| `getQuickstartScript_tool` | Get the quickstart install script |
+
+### V3 Server (`/mcp/v3`)
+
+One direct tool per public operation (100+), with compact descriptions the model can expand on demand.
 
 ### Core Server (`/mcp`)
 
@@ -264,6 +276,7 @@ Meta tools for dynamic endpoint discovery:
 | Tool | Description |
 |------|-------------|
 | `search_endpoints` | Search for API endpoints by keyword |
+| `list_tag_packs` | List curated groups of endpoints to narrow the catalog |
 | `list_all_endpoints` | List all available API endpoints |
 | `get_endpoint_details_full` | Get full schema details for an endpoint |
 | `call_operation` | Call any API endpoint by its operation ID |
@@ -282,7 +295,7 @@ The agent passes the key in the request body as `apiKey`. Simplest path: paste y
 
 ```
 You:    Use sk_live_... as my Fiber API key.
-Agent:  [calls api_companySearch with { "apiKey": "sk_live_...", "searchParams": {...} }]
+Agent:  [calls companySearch_tool with { "apiKey": "sk_live_...", "searchParams": {...} }]
 ```
 
 Caveat: the key ends up in chat history. Fine for personal use, not ideal for shared sessions.
@@ -308,11 +321,7 @@ Configure the header once in your MCP client config; the agent never sees the ke
 }
 ```
 
-Most clients (Claude Code, Cursor, Claude Desktop, Codex, Windsurf, VS Code) accept a `headers` field on each MCP server. Reference your env var instead of hard-coding:
-
-```json
-"headers": { "x-api-key": "${env:FIBER_API_KEY}" }
-```
+Most clients accept a `headers` field on each MCP server and can read the key from an environment variable instead of hard-coding it. The field name and variable syntax differ per client; see the [Setup](#setup) section for yours.
 
 ### Option C - via `Authorization: Bearer` header
 
@@ -355,7 +364,7 @@ For building applications programmatically (not via MCP):
 ## FAQ
 
 **Connection not working?**
-Ensure your editor supports HTTP (Streamable HTTP) MCP transport. If it only supports stdio, use the `npx mcp-remote` wrapper shown in the VS Code / Windsurf / Zed instructions.
+Ensure your editor supports HTTP (Streamable HTTP) MCP transport. If it only supports stdio, use the `npx mcp-remote` wrapper shown under [Others](#others).
 
 **Getting authentication errors?**
 Make sure you're supplying a valid key via one of the three supported paths (body `apiKey`, `x-api-key` header, or `Authorization: Bearer`). See [Authentication](#authentication) above. Get a key at [fiber.ai/app/api](https://fiber.ai/app/api).
@@ -363,8 +372,8 @@ Make sure you're supplying a valid key via one of the three supported paths (bod
 **Should I put the key in chat or in headers?**
 For personal sessions, chat is fine. For shared sessions, team-config files committed to git, or anywhere chat history might leak, configure the `x-api-key` header at the MCP client layer so the agent never sees the raw key.
 
-**Can I use both servers at the same time?**
-Yes. Many users add both V2 and Core for maximum flexibility.
+**Can I use more than one server at the same time?**
+Yes. You can register V2, V3, and Core side by side; their names stay distinct.
 
 ---
 
